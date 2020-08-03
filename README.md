@@ -7,12 +7,12 @@ The current aim is to build PEPsal for only IPv6, but not for IPv4/IPv6 simultan
 
 The source code of original pepsal-2.0.1 was obtained from "sourceforge.net/projects/pepsal/".
 
-###Author of PEPsal6
+### Author of PEPsal6
 Author          : Chirfen Zhang(Qi Zhang) <Chirfen_Z@163.com>
 
 
 
-###Copyright information of the original PEPsal-2.0.1
+### Copyright information of the original PEPsal-2.0.1
 
 Idea and Design	: Carlo Caini <ccaini@deis.unibo.it>, 
 		  Rosario Firrincieli <rfirrincieli@arces.unibo.it>
