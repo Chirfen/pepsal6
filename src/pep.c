@@ -1131,6 +1131,8 @@ int main(int argc, char *argv[])
     void *valptr;
     sigset_t sigset;
 
+    printf("pepsal6 is starting...\n");
+
     memset(&logger, 0, sizeof(logger));
     while (1) {
         int option_index = 0;
