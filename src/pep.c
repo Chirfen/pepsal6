@@ -37,6 +37,7 @@
 #include <getopt.h>
 #include <linux/netfilter.h>
 #include <netinet/ip.h>
+#include <netinet/ip6.h>
 #include <netinet/tcp.h>
 
 #include <sys/poll.h>
@@ -54,13 +55,15 @@
  * Data structure to fill with packet headers when we
  * get a new syn:
  *
- * struct ipv4_packet
- *		iph : ip header for the packet
+ * struct ipv6_packet
+ *		iph : ipv6 header for the packet
  *		tcph: tcp header for the segment
  *
  */
-struct ipv4_packet{
-	struct iphdr iph;
+
+
+struct ipv6_packet{
+	struct ip6_hdr iph;
 	struct tcphdr tcph;
 };
 
@@ -71,7 +74,7 @@ static int gcc_interval = PEP_GCC_INTERVAL;
 static int pending_conn_lifetime = PEP_PENDING_CONN_LIFETIME;
 static int portnum = PEP_DEFAULT_PORT;
 static int max_conns = (PEP_MIN_CONNS + PEP_MAX_CONNS) / 2;
-static char pepsal_ip_addr[20] = "0.0.0.0";
+static char pepsal_ip_addr[20] = "0.0.0.0";  //todo
 
 /*
  * The main aim of this structure is to reduce search time
@@ -493,7 +496,7 @@ static int nfqueue_get_syn(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
                            struct nfq_data *nfa, void *data)
 {
 	char *buffer;
-	struct ipv4_packet *ip4;
+	struct ipv6_packet *ip;   //original identifier: ip4
 	struct pep_proxy *proxy, *dup;
     struct syntab_key key;
 	int id = 0, ret, added = 0;
@@ -520,11 +523,11 @@ static int nfqueue_get_syn(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
     }
 
     /* Setup source and destination endpoints */
-	ip4 = (struct ipv4_packet *)buffer;
-    proxy->src.addr = ntohl(ip4->iph.saddr);
-    proxy->src.port = ntohs(ip4->tcph.source);
-    proxy->dst.addr = ntohl(ip4->iph.daddr);
-    proxy->dst.port = ntohs(ip4->tcph.dest);
+	ip = (struct ipv6_packet *)buffer;
+    proxy->src.addr = ntohl(ip->iph.saddr);
+    proxy->src.port = ntohs(ip->tcph.source);
+    proxy->dst.addr = ntohl(ip->iph.daddr);
+    proxy->dst.port = ntohs(ip->tcph.dest);
     proxy->syn_time = time(NULL);
     syntab_format_key(proxy, &key);
 
@@ -628,16 +631,16 @@ static void *queuer_loop(void __attribute__((unused)) *unused)
 void *listener_loop(void  __attribute__((unused)) *unused)
 {
     int                 listenfd, optval, ret, connfd, out_fd;
-	struct sockaddr_in  cliaddr, servaddr,
+	struct sockaddr_in6  cliaddr, servaddr,
                         r_servaddr, proxy_servaddr;
     socklen_t           len;
     struct syntab_key   key;
     struct pep_proxy   *proxy;
-    struct hostent     *host;
+    //struct hostent     *host;
     char                ipbuf[17];
     unsigned short      r_port;
 
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    listenfd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listenfd < 0) {
         pep_error("Failed to create listener socket!");
     }
@@ -645,9 +648,9 @@ void *listener_loop(void  __attribute__((unused)) *unused)
     PEP_DEBUG("Opened listener socket: %d", listenfd);
     memset(&servaddr, 0, sizeof(servaddr));
 
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(portnum);
+    servaddr.sin6_family = AF_INET6;
+    servaddr.sin6_addr= in6addr_any;
+    servaddr.sin6_port = htons(portnum);
 
     optval = 1;
     ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,
@@ -673,7 +676,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         out_fd = -1;
         proxy = NULL;
 
-        len = sizeof(struct sockaddr_in);
+        len = sizeof(struct sockaddr_in6); 
         connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &len);
         if (connfd < 0) {
             pep_warning("accept() failed! [Errno: %s, %d]",
@@ -715,18 +718,21 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         toip(ipbuf, proxy->dst.addr);
         r_port = proxy->dst.port;
         PEP_DEBUG("Connecting to %s:%d...", ipbuf, r_port);
-        host = gethostbyname(ipbuf);
+        /*host = gethostbyname(ipbuf);
         if (!host) {
             pep_warning("Failed to get host %s!", ipbuf);
             goto close_connection;
-        }
+        }*/
 
         memset(&r_servaddr, 0, sizeof(r_servaddr));
-        r_servaddr.sin_family = AF_INET;
-        r_servaddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
-        r_servaddr.sin_port = htons(r_port);
+        r_servaddr.sin6_family = AF_INET6;
+        r_servaddr.sin6_addr =  proxy->dst.addr;
+       // r_servaddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
+        r_servaddr.sin6_port = htons(r_port);
 
-        ret = socket(AF_INET, SOCK_STREAM, 0);
+ //ret=bind(s,(struct sockaddr*)&server_addr,sizeof(server_addr));
+
+        ret = socket(AF6_INET, SOCK_STREAM, 0);
         if (ret < 0) {
             pep_warning("Failed to create socket! [%s:%d]",
                         strerror(errno), errno);
@@ -737,9 +743,9 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
         memset(&proxy_servaddr, 0, sizeof(proxy_servaddr));
-        proxy_servaddr.sin_family = AF_INET;
-        proxy_servaddr.sin_addr.s_addr = inet_addr(pepsal_ip_addr);
-        proxy_servaddr.sin_port = htons(0);
+        proxy_servaddr.sin6_family = AF_INET6;
+        proxy_servaddr.sin6_addr = in6addr_any;  //todo after test
+        proxy_servaddr.sin6_port = htons(0);
 
         ret = bind(out_fd, (struct sockaddr *)&proxy_servaddr,
                    sizeof(proxy_servaddr));
@@ -1173,7 +1179,7 @@ int main(int argc, char *argv[])
                 portnum = atoi(optarg);
                 break;
             case 'a':
-                strncpy(pepsal_ip_addr, optarg, 19);
+                strncpy(pepsal_ip_addr, optarg, 19);  //todo after test
                 break;
             case 'l':
                 logger.filename = optarg;
