@@ -797,6 +797,7 @@ close_connection:
             close(out_fd);
         }
         if (proxy) {
+            PEP_DEBUG_DP(proxy, "Destroying... line 800");
             destroy_proxy(proxy);
         }
     }
@@ -926,6 +927,7 @@ static void *poller_loop(void  __attribute__((unused)) *unused)
                     getsockopt(proxy->dst.fd, SOL_SOCKET, SO_ERROR,
                                &connerr, &errlen);
                     if (connerr != 0) {
+                        PEP_DEBUG_DP(proxy, "Destroying... line 930");
                         destroy_proxy(proxy);
                         break;
                     }
@@ -951,7 +953,7 @@ static void *poller_loop(void  __attribute__((unused)) *unused)
                         if (proxy->enqueued) {
                             list_del(&proxy->qnode);
                         }
-
+                        PEP_DEBUG_DP(proxy, "Destroying... line 956");
                         destroy_proxy(proxy);
                         continue;
                     }
@@ -1009,6 +1011,7 @@ static void *poller_loop(void  __attribute__((unused)) *unused)
                 if ((iostat & PEP_IOERR) ||
                     ((iostat & PEP_IOEOF) && pepbuf_empty(&endp->buf))) {
                     list_del(&proxy->qnode);
+                    PEP_DEBUG_DP(proxy, "Destroying... line 1014");
                     destroy_proxy(proxy);
                     break;
                 }
