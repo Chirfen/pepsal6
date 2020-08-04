@@ -98,7 +98,7 @@ void syntab_format_key_base(struct in6_addr addr, unsigned short port, struct sy
 
 void syntab_format_key(struct pep_proxy *proxy, struct syntab_key *key)
 {
-    syntab_format_key_base(proxy->src.addr, proxy->src.port);
+    syntab_format_key_base(proxy->src.addr, proxy->src.port, key);
 }
 
 struct pep_proxy *syntab_find(struct syntab_key *key)
