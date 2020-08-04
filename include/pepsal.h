@@ -18,6 +18,11 @@
 #include "atomic.h"
 #include "list.h"
 
+#include <netinet/in.h>
+
+/* The default length of addr string */
+#define ADDRSTRLEN INET6_ADDRSTRLEN
+
 enum proxy_status {
     PST_CLOSED = 0,
     PST_OPEN,
@@ -35,7 +40,7 @@ enum proxy_status {
 struct pep_proxy;
 
 struct pep_endpoint{
-	int addr;
+	struct in6_addr addr; //int addr;
 	unsigned short port;
     int fd;
     struct pep_buffer buf;

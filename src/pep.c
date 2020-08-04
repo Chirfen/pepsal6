@@ -39,6 +39,7 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 
 #include <sys/poll.h>
 #include <string.h>
@@ -136,12 +137,12 @@ static pthread_t *workers = NULL;
 
 #define PEP_DEBUG_DP(proxy, fmt, args...)                           \
     if (DEBUG) {                                                    \
-        char __buf[17];                                             \
-        toip(__buf, (proxy)->src.addr);                             \
+        char __buf[ADDRSTRLEN];                                             \
+        inet_ntop(AF_INET6,  &(proxy)->src.addr, __buf, INET6_ADDRSTRLEN) ;  \ 
         fprintf(stderr, "[DEBUG] %s(): {%s:%d} " fmt "\n",          \
                 __FUNCTION__, __buf, (proxy)->src.port, ##args);    \
     }
-
+//toip(__buf, (proxy)->src.addr);                             
 static void __pep_error(const char *function, int line, const char *fmt, ...)
 {
     va_list ap;
@@ -214,7 +215,7 @@ static int nonblocking_err_p(int err)
  * Secure routine to translate a hex address in a
  * readable ip number:
  */
-static void toip(char *ret, int address)
+/*static void toip(char *ret, int address)
 {
 	int a,b,c,d;
 
@@ -224,7 +225,7 @@ static void toip(char *ret, int address)
 	d = 0x000000FF & address;
 
 	snprintf(ret,16,"%d.%d.%d.%d",a,b,c,d);
-}
+}*/
 
 static char *conn_stat[] = {
     "PST_CLOSED",
@@ -237,7 +238,7 @@ static void logger_fn(void)
 {
     struct pep_proxy *proxy;
     time_t tm;
-    char ip_src[17], ip_dst[17], timebuf[128];
+    char ip_src[ADDRSTRLEN], ip_dst[ADDRSTRLEN], timebuf[128];
     int i = 1, len;
 
     PEP_DEBUG("Logger invoked!");
@@ -248,8 +249,10 @@ static void logger_fn(void)
     timebuf[len - 1] = ']';
     fprintf(logger.file, "=== [%s ===\n", timebuf);
     syntab_foreach_connection(proxy) {
-        toip(ip_src, proxy->src.addr);
-        toip(ip_dst, proxy->dst.addr);
+        //toip(ip_src, proxy->src.addr);
+        inet_ntop(AF_INET6,  &(proxy)->src.addr, ip_src, INET6_ADDRSTRLEN) ; 
+        //toip(ip_dst, proxy->dst.addr);
+        inet_ntop(AF_INET6,  &(proxy)->dst.addr, ip_dst, INET6_ADDRSTRLEN) ; 
         fprintf(logger.file, "[%d] Proxy %s:%d <-> %s:%d\n", i++,
                 ip_src, proxy->src.port, ip_dst, proxy->dst.port);
         fprintf(logger.file, "    Status: %s\n", conn_stat[proxy->status]);
@@ -524,9 +527,9 @@ static int nfqueue_get_syn(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 
     /* Setup source and destination endpoints */
 	ip = (struct ipv6_packet *)buffer;
-    proxy->src.addr = ntohl(ip->iph.saddr);
+    proxy->src.addr = ip->iph.ip6_src;  //proxy->src.addr = ntohl(ip->iph.saddr);
     proxy->src.port = ntohs(ip->tcph.source);
-    proxy->dst.addr = ntohl(ip->iph.daddr);
+    proxy->dst.addr = ip->iph.ip6_dst;  //proxy->dst.addr = ntohl(ip->iph.daddr);
     proxy->dst.port = ntohs(ip->tcph.dest);
     proxy->syn_time = time(NULL);
     syntab_format_key(proxy, &key);
@@ -594,11 +597,11 @@ static void *queuer_loop(void __attribute__((unused)) *unused)
 
     PEP_DEBUG("unbinding existing nf_queue handler "
               "for AF_INET (if any)");
-    nfq_unbind_pf(h, AF_INET);
+    nfq_unbind_pf(h, AF_INET6);
 
     PEP_DEBUG("binding nfnetlink_queue as "
               "nf_queue handler for AF_INET");
-    ret = nfq_bind_pf(h, AF_INET);
+    ret = nfq_bind_pf(h, AF_INET6);
     if (ret < 0) {
         pep_error("Failed to bind NFQ handler! [RET = %d]", ret);
     }
@@ -637,7 +640,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
     struct syntab_key   key;
     struct pep_proxy   *proxy;
     //struct hostent     *host;
-    char                ipbuf[17];
+    char                ipbuf[ADDRSTRLEN];
     unsigned short      r_port;
 
     listenfd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -688,11 +691,11 @@ void *listener_loop(void  __attribute__((unused)) *unused)
          * Try to find incomming connection in our SYN table
          * It must be already there waiting for activation.
          */
-        key.addr = ntohl(cliaddr.sin_addr.s_addr);
-        key.port = ntohs(cliaddr.sin_port);
-        toip(ipbuf, key.addr);
-        PEP_DEBUG("New incomming connection: %s:%d", ipbuf, key.port);
+        
+        inet_ntop(AF_INET6,  &(cliaddr.sin6_addr), ipbuf, INET6_ADDRSTRLEN) ; 
+        PEP_DEBUG("New incomming connection: %s:%d", ipbuf, ntohs(cliaddr.sin6_port));
 
+        syntab_format_key_base(cliaddr.sin6_addr,cliaddr.sin6_port,&key);
         SYNTAB_LOCK_READ();
         proxy = syntab_find(&key);
         if (!proxy) {
@@ -715,7 +718,8 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         assert(proxy->status == PST_PENDING);
         SYNTAB_UNLOCK_READ();
 
-        toip(ipbuf, proxy->dst.addr);
+        //toip(ipbuf, proxy->dst.addr);
+        inet_ntop(AF_INET6,  &(proxy)->dst.addr, ipbuf, INET6_ADDRSTRLEN) ; 
         r_port = proxy->dst.port;
         PEP_DEBUG("Connecting to %s:%d...", ipbuf, r_port);
         /*host = gethostbyname(ipbuf);
@@ -730,9 +734,9 @@ void *listener_loop(void  __attribute__((unused)) *unused)
        // r_servaddr.sin_addr.s_addr = ((struct in_addr *)(host->h_addr))->s_addr;
         r_servaddr.sin6_port = htons(r_port);
 
- //ret=bind(s,(struct sockaddr*)&server_addr,sizeof(server_addr));
+        //ret=bind(s,(struct sockaddr*)&server_addr,sizeof(server_addr));
 
-        ret = socket(AF6_INET, SOCK_STREAM, 0);
+        ret = socket(AF_INET6, SOCK_STREAM, 0);
         if (ret < 0) {
             pep_warning("Failed to create socket! [%s:%d]",
                         strerror(errno), errno);
@@ -1138,6 +1142,7 @@ int main(int argc, char *argv[])
     sigset_t sigset;
 
     printf("pepsal6 is starting...\n");
+    printf("Powered by THU FIT 1-217.\n");
 
     memset(&logger, 0, sizeof(logger));
     while (1) {

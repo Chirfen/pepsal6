@@ -90,11 +90,15 @@ err:
     errno = ret;
     return -1;
 }
+void syntab_format_key_base(struct in6_addr addr, unsigned short port, struct syntab_key *key)
+{
+    key->addr = addr.s6_addr32[3];  // taking the last 32 bits of the IPv6 address as part of key.
+    key->port = port;
+}
 
 void syntab_format_key(struct pep_proxy *proxy, struct syntab_key *key)
 {
-    key->addr = proxy->src.addr;
-    key->port = proxy->src.port;
+    syntab_format_key_base(proxy->src.addr, proxy->src.port);
 }
 
 struct pep_proxy *syntab_find(struct syntab_key *key)

@@ -25,7 +25,7 @@ struct syn_table{
 };
 
 struct syntab_key {
-    int addr;
+    unsigned int addr;
     unsigned short port;
 };
 
@@ -42,6 +42,7 @@ extern struct syn_table syntab;
     list_for_each_entry(&GET_SYNTAB()->conns, con, struct pep_proxy, lnode)
 
 int syntab_init(int num_conns);
+void syntab_format_key_base(struct in6_addr addr, unsigned short port, struct syntab_key *key);
 void syntab_format_key(struct pep_proxy *proxy, struct syntab_key *key);
 struct pep_proxy *syntab_find(struct syntab_key *key);
 int syntab_add(struct pep_proxy *proxy);
