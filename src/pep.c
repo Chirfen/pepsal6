@@ -695,7 +695,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         inet_ntop(AF_INET6,  &(cliaddr.sin6_addr), ipbuf, INET6_ADDRSTRLEN) ; 
         PEP_DEBUG("New incomming connection: %s:%d", ipbuf, ntohs(cliaddr.sin6_port));
 
-        syntab_format_key_base(cliaddr.sin6_addr,cliaddr.sin6_port,&key);
+        syntab_format_key_base(cliaddr.sin6_addr,ntohs(cliaddr.sin6_port),&key);
         SYNTAB_LOCK_READ();
         proxy = syntab_find(&key);
         if (!proxy) {
