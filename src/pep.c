@@ -746,18 +746,21 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         out_fd = ret;
         fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
+        struct in6_addr addr;
+        inet_pton(AF_INET6, "2001:2000::3", &addr);
+
         memset(&proxy_servaddr, 0, sizeof(proxy_servaddr));
         proxy_servaddr.sin6_family = AF_INET6;
-        proxy_servaddr.sin6_addr = in6addr_any;  //todo after test
+        proxy_servaddr.sin6_addr = addr;  //todo after test
         proxy_servaddr.sin6_port = htons(0);
-        /*
+        
         ret = bind(out_fd, (struct sockaddr *)&proxy_servaddr,
                    sizeof(proxy_servaddr));
         if (ret < 0) {
             pep_warning("Failed to bind proxy socket! [%s:%d]",
                         strerror(errno), errno);
             goto close_connection;
-        }*/
+        }
 
         ret = connect(out_fd, (struct sockaddr *)&r_servaddr,
                       sizeof(struct sockaddr));
