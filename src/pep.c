@@ -955,6 +955,9 @@ static void *poller_loop(void  __attribute__((unused)) *unused)
                         }
                         PEP_DEBUG_DP(proxy, "Destroying... line 956");
                         PEP_DEBUG_DP(proxy, "num_clients:%d",i);
+                        PEP_DEBUG_DP(proxy, "pollfd->revents & (POLLHUP):%d", pollfd->revents & (POLLHUP));
+                        PEP_DEBUG_DP(proxy, "pollfd->revents & (POLLERR):%d", pollfd->revents & (POLLERR));
+                        PEP_DEBUG_DP(proxy, "pollfd->revents & (POLLNVAL):%d", pollfd->revents & (POLLNVAL));
                         destroy_proxy(proxy);
                         continue;
                     }
