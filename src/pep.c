@@ -764,7 +764,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
 
         ret = connect(out_fd, (struct sockaddr *)&r_servaddr,
                       sizeof(struct sockaddr));
-        if ((ret < 0){
+        if (ret < 0){
             pep_warning("Failed to connect!");
         }
         if ((ret < 0) && !nonblocking_err_p(errno)) {
