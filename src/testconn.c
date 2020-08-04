@@ -17,6 +17,7 @@
 int main(int argc, char *argv[])
 {
     int ret;
+    unsigned short port;
     struct sockaddr_in6 r_servaddr;
     
     struct in6_addr addr;
@@ -24,8 +25,12 @@ int main(int argc, char *argv[])
 
     memset(&r_servaddr, 0, sizeof(r_servaddr));
     r_servaddr.sin6_family = AF_INET6;
-    r_servaddr.sin6_addr =  addr;
-    r_servaddr.sin6_port = htons((unsigned short)5001);
+    //r_servaddr.sin6_addr =  addr;
+    inet_pton(AF_INET6, "2001:2000::2", &r_servaddr.sin6_addr);
+    port = 5001;
+    r_servaddr.sin6_port = htons(port);
+
+    
 
     ret = socket(AF_INET6, SOCK_STREAM, 0);
         if (ret < 0) {
