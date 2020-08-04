@@ -11,6 +11,7 @@
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 
 int main(int argc, char *argv[])
