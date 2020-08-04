@@ -750,14 +750,14 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         proxy_servaddr.sin6_family = AF_INET6;
         proxy_servaddr.sin6_addr = in6addr_any;  //todo after test
         proxy_servaddr.sin6_port = htons(0);
-
+        /*
         ret = bind(out_fd, (struct sockaddr *)&proxy_servaddr,
                    sizeof(proxy_servaddr));
         if (ret < 0) {
             pep_warning("Failed to bind proxy socket! [%s:%d]",
                         strerror(errno), errno);
             goto close_connection;
-        }
+        }*/
 
         ret = connect(out_fd, (struct sockaddr *)&r_servaddr,
                       sizeof(struct sockaddr));
