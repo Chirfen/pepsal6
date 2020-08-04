@@ -954,6 +954,7 @@ static void *poller_loop(void  __attribute__((unused)) *unused)
                             list_del(&proxy->qnode);
                         }
                         PEP_DEBUG_DP(proxy, "Destroying... line 956");
+                        PEP_DEBUG_DP(proxy, "num_clients:%d",i);
                         destroy_proxy(proxy);
                         continue;
                     }
