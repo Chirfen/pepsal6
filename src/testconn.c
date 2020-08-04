@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     ret = connect(ret, (struct sockaddr *)&r_servaddr,
                       sizeof(struct sockaddr));
-        if ((ret < 0) && !nonblocking_err_p(errno)){
+        if ((ret < 0) ){
             printf("Failed to connect! [%s:%d]",
                         strerror(errno), errno);
             return 0;
