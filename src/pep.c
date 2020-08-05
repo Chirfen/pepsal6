@@ -643,8 +643,8 @@ void *listener_loop(void  __attribute__((unused)) *unused)
     char                ipbuf[ADDRSTRLEN];
     unsigned short      r_port;
     struct addrinfo     hints = { 0 };
-    struct addrinfo dst;
-    struct addrinfo *dst_servaddr = &dst;
+    struct addrinfo     dst;
+    struct addrinfo     *dst_servaddr;
     int gai_err;
 
     listenfd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -733,15 +733,18 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         }*/
         
         memset(&dst, 0, sizeof(dst));
+        dst_servaddr = &dst;
         hints.ai_family = AF_INET6;
         hints.ai_socktype = SOCK_STREAM;
 
+        PEP_DEBUG("before getaddrinfo"); //DEBUG-addr
         gai_err = getaddrinfo(ipbuf, r_port, &hints, &dst_servaddr);
         if (gai_err)
         {
             PEP_DEBUG("getaddrinfo: %s\n", gai_strerror(gai_err));
             return 1;
         }
+        PEP_DEBUG("after getaddrinfo"); //DEBUG-addr
 
         ret = socket(dst_servaddr->ai_family, dst_servaddr->ai_socktype, dst_servaddr->ai_protocol);
         if (ret < 0) {
@@ -753,10 +756,12 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         out_fd = ret;
         fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
+        PEP_DEBUG("before connect"); //DEBUG-addr
         if (connect(ret, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
             pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
                 goto close_connection;
         }
+        PEP_DEBUG("after connect"); //DEBUG-addr
 
         //The following conneting code, was replaced by above code with modern style (by Chirfen Qi Zhang)
         /*
