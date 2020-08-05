@@ -727,7 +727,37 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             pep_warning("Failed to get host %s!", ipbuf);
             goto close_connection;
         }*/
+        struct addrinfo hints = { 0 };
+        struct addrinfo *dst_servaddr;
+        int gai_err;
 
+        hints.ai_family = AF_INET6;
+        hints.ai_socktype = SOCK_STREAM;
+
+        gai_err = getaddrinfo(ipbuf, r_port, &hints, &dst_servaddr);
+        if (gai_err)
+        {
+            PEP_DEBUG("getaddrinfo: %s\n", gai_strerror(gai_err));
+            return 1;
+        }
+
+        ret = socket(dst_servaddr->ai_family, dst_servaddr->ai_socktype, dst_servaddr->ai_protocol);
+        if (ret < 0) {
+                pep_warning("Failed to create socket! [%s:%d]",
+                            strerror(errno), errno);
+                goto close_connection;
+            }
+        
+        out_fd = ret;
+        fcntl(out_fd, F_SETFL, O_NONBLOCK);
+
+        if (connect(s, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
+            pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
+                goto close_connection;
+        }
+
+        //The following conneting code, was replaced by above code with modern style (by Chirfen Qi Zhang)
+        /*
         memset(&r_servaddr, 0, sizeof(r_servaddr));
         r_servaddr.sin6_family = AF_INET6;
         r_servaddr.sin6_addr =  proxy->dst.addr;
@@ -744,9 +774,10 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         }
 
         out_fd = ret;
-        fcntl(out_fd, F_SETFL, O_NONBLOCK);
+        fcntl(out_fd, F_SETFL, O_NONBLOCK);*/
 
-        struct in6_addr addr;
+        //Delete bind() process here. (by Chirfen Qi Zhang)
+        /*struct in6_addr addr;
         inet_pton(AF_INET6, "2001:2000::3", &addr);
 
         memset(&proxy_servaddr, 0, sizeof(proxy_servaddr));
@@ -760,17 +791,14 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             pep_warning("Failed to bind proxy socket! [%s:%d]",
                         strerror(errno), errno);
             goto close_connection;
-        }
+        }*/
 
-        ret = connect(out_fd, (struct sockaddr *)&r_servaddr,
+        /*ret = connect(out_fd, (struct sockaddr *)&r_servaddr,
                       sizeof(struct sockaddr));
-        if (ret < 0){
-            pep_warning("Failed to connect!");
-        }
         if ((ret < 0) && !nonblocking_err_p(errno)) {
             pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
             goto close_connection;
-        }
+        }*/
 
         proxy->src.fd = connfd;
         proxy->dst.fd = out_fd;
