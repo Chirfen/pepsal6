@@ -16,10 +16,39 @@
 
 int main(int argc, char *argv[])
 {
+
+    struct addrinfo hints = { 0 };
+    struct addrinfo *res;
+    int gai_err;
+    int s;
+
+    hints.ai_family = AF_INET6;
+    hints.ai_socktype = SOCK_STREAM;
+
+    gai_err = getaddrinfo("2001:2000::2%eth2", "5001", &hints, &res);
+
+    if (gai_err)
+    {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(gai_err));
+        return 1;
+    }
+
+    s = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+    if (s < 0) {
+        perror("socket");
+        return 1;
+    }
+
+    if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
+        perror("connect");
+        return 1;
+    }
+    /*
     int ret;
     unsigned short port;
     struct sockaddr_in6 r_servaddr;
-    
+     
     struct in6_addr addr;
     inet_pton(AF_INET6, "2001:2000::2%eth2", &addr);
 
@@ -46,7 +75,7 @@ int main(int argc, char *argv[])
                         strerror(errno), errno);
             return 0;
         }
-
+    */
     printf("exit...");
     return 0;
 
