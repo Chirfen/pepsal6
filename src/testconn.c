@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in6 r_servaddr;
     
     struct in6_addr addr;
-    inet_pton(AF_INET6, "2001:2000::2", &addr);
+    inet_pton(AF_INET6, "2001:2000::2%eth2", &addr);
 
     memset(&r_servaddr, 0, sizeof(r_servaddr));
     r_servaddr.sin6_family = AF_INET6;
