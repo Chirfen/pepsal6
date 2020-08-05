@@ -738,7 +738,8 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         hints.ai_socktype = SOCK_STREAM;
 
         PEP_DEBUG("before getaddrinfo"); //DEBUG-addr
-        gai_err = getaddrinfo(ipbuf, r_port, &hints, &dst_servaddr);
+        gai_err = getaddrinfo("2001:2000::2", "5001", &hints, &dst_servaddr);
+        //gai_err = getaddrinfo(ipbuf, r_port, &hints, &dst_servaddr);
         if (gai_err)
         {
             PEP_DEBUG("getaddrinfo: %s\n", gai_strerror(gai_err));
