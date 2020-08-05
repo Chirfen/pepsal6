@@ -755,7 +755,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             }
         
         out_fd = ret;
-        fcntl(out_fd, F_SETFL, O_NONBLOCK);
+        //fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
         PEP_DEBUG("before connect"); //DEBUG-addr
         if (connect(out_fd, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
