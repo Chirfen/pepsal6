@@ -728,7 +728,9 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             goto close_connection;
         }*/
         struct addrinfo hints = { 0 };
-        struct addrinfo *dst_servaddr;
+        struct addrinfo dst;
+        memset(&dst, 0, sizeof(dst));
+        struct addrinfo *dst_servaddr = &dst;
         int gai_err;
 
         hints.ai_family = AF_INET6;
