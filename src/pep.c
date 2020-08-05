@@ -642,6 +642,10 @@ void *listener_loop(void  __attribute__((unused)) *unused)
     //struct hostent     *host;
     char                ipbuf[ADDRSTRLEN];
     unsigned short      r_port;
+    struct addrinfo     hints = { 0 };
+    struct addrinfo dst;
+    struct addrinfo *dst_servaddr = &dst;
+    int gai_err;
 
     listenfd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listenfd < 0) {
@@ -727,12 +731,8 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             pep_warning("Failed to get host %s!", ipbuf);
             goto close_connection;
         }*/
-        struct addrinfo hints = { 0 };
-        struct addrinfo dst;
+        
         memset(&dst, 0, sizeof(dst));
-        struct addrinfo *dst_servaddr = &dst;
-        int gai_err;
-
         hints.ai_family = AF_INET6;
         hints.ai_socktype = SOCK_STREAM;
 
