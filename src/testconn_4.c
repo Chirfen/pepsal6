@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     r_servaddr.sin_family = AF_INET;
     //r_servaddr.sin6_addr =  addr;
     //inet_pton(AF_INET6, "2001:2000::2", &r_servaddr.sin6_addr);
-    inet_pton(AF_INET, "172.19.0.2", &r_servaddr.sin_addr.s_addr);
+    inet_pton(AF_INET, "172.19.0.2", &r_servaddr.sin_addr);
     port = 5001;
     r_servaddr.sin_port = htons(port);
 
