@@ -755,12 +755,18 @@ void *listener_loop(void  __attribute__((unused)) *unused)
             }
         
         out_fd = ret;
-        //fcntl(out_fd, F_SETFL, O_NONBLOCK);
+        fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
         PEP_DEBUG("before connect"); //DEBUG-addr
         if (connect(out_fd, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
-            pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
+            if(errno == EINPROGRESS) {
+                pep_warning("EINPROGRESS");
+            }
+            else{
+                pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
                 goto close_connection;
+            }
+            
         }
         PEP_DEBUG("after connect"); //DEBUG-addr
 
