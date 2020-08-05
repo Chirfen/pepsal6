@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
 
-    gai_err = getaddrinfo("2001:2000::2%eth2", "5001", &hints, &res);
+    gai_err = getaddrinfo("2001:2000::2", "5001", &hints, &res);
 
     if (gai_err)
     {
