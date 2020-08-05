@@ -758,7 +758,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
         PEP_DEBUG("before connect"); //DEBUG-addr
-        if (connect(ret, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
+        if (connect(out_fd, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
             pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
                 goto close_connection;
         }
