@@ -641,6 +641,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
     struct pep_proxy   *proxy;
     //struct hostent     *host;
     char                ipbuf[ADDRSTRLEN];
+    char                port[10];
     unsigned short      r_port;
     struct addrinfo     hints = { 0 };
     struct addrinfo     dst;
@@ -738,8 +739,9 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         hints.ai_socktype = SOCK_STREAM;
 
         PEP_DEBUG("before getaddrinfo"); //DEBUG-addr
-        gai_err = getaddrinfo("2001:2000::2", "5001", &hints, &dst_servaddr);
-        //gai_err = getaddrinfo(ipbuf, r_port, &hints, &dst_servaddr);
+        sprintf(port,"%hu",r_port);
+        //gai_err = getaddrinfo("2001:2000::2", "5001", &hints, &dst_servaddr);
+        gai_err = getaddrinfo(ipbuf, port, &hints, &dst_servaddr);
         if (gai_err)
         {
             PEP_DEBUG("getaddrinfo: %s\n", gai_strerror(gai_err));
