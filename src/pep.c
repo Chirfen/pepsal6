@@ -751,7 +751,7 @@ void *listener_loop(void  __attribute__((unused)) *unused)
         out_fd = ret;
         fcntl(out_fd, F_SETFL, O_NONBLOCK);
 
-        if (connect(s, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
+        if (connect(ret, dst_servaddr->ai_addr, dst_servaddr->ai_addrlen) < 0) {
             pep_warning("Failed to connect! [%s:%d]", strerror(errno), errno);
                 goto close_connection;
         }
